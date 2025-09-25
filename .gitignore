@@ -27,3 +27,8 @@ conf.yaml
 # coverage report
 coverage.xml
 coverage/
+
+# dev
+r.sh
+TODO.md
+deer-flow-documents/
