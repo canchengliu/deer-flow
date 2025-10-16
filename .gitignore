@@ -27,3 +27,5 @@ conf.yaml
 # coverage report
 coverage.xml
 coverage/
+
+deer-flow-documents/
