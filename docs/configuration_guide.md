@@ -17,6 +17,14 @@ In DeerFlow, we currently only support non-reasoning models. This means models l
 
 `doubao-1.5-pro-32k-250115`, `gpt-4o`, `qwen-max-latest`,`qwen3-235b-a22b`,`qwen3-coder`, `gemini-2.0-flash`, `deepseek-v3`, and theoretically any other non-reasoning chat models that implement the OpenAI API specification.
 
+### Local Model Support
+
+DeerFlow supports local models through OpenAI-compatible APIs:
+
+- **Ollama**: `http://localhost:11434/v1` (tested and supported for local development)
+
+See the `conf.yaml.example` file for detailed configuration examples.
+
 > [!NOTE]
 > The Deep Research process requires the model to have a **longer context window**, which is not supported by all models.
 > A work-around is to set the `Max steps of a research plan` to `2` in the settings dialog located on the top right corner of the web page,
@@ -180,6 +188,20 @@ BASIC_MODEL:
   api_key: $AZURE_OPENAI_API_KEY
 ```
 
+### How to configure context length for different models
+
+Different models have different context length limitations. DeerFlow provides a method to control the context length between different models. You can configure the context length between different models in the `conf.yaml` file. For example:
+```yaml
+BASIC_MODEL:
+  base_url: https://ark.cn-beijing.volces.com/api/v3
+  model: "doubao-1-5-pro-32k-250115"
+  api_key: ""
+  token_limit: 128000
+```
+This means that the context length limit using this model is 128k. 
+
+The context management doesn't work if the token_limit is not set.
+
 ## About Search Engine
 
 ### How to control search domains for Tavily?
@@ -209,6 +231,28 @@ SEARCH_ENGINE:
   # Include raw content in search results, default: true
   include_raw_content: false
 ```
+
+### How to post-process Tavily search results
+
+DeerFlow can post-process Tavily search results:
+* Remove duplicate content
+* Filter low-quality content: Filter out results with low relevance scores
+* Clear base64 encoded images
+* Length truncation: Truncate each search result according to the user-configured length
+
+The filtering of low-quality content and length truncation depend on user configuration, providing two configurable parameters:
+* min_score_threshold: Minimum relevance score threshold, search results below this threshold will be filtered. If not set, no filtering will be performed;
+* max_content_length_per_page: Maximum length limit for each search result content, parts exceeding this length will be truncated. If not set, no truncation will be performed;
+
+These two parameters can be configured in `conf.yaml` as shown below:
+```yaml
+SEARCH_ENGINE:
+  engine: tavily
+  include_images: true
+  min_score_threshold: 0.4
+  max_content_length_per_page: 5000
+```
+That's meaning that the search results will be filtered based on the minimum relevance score threshold and truncated to the maximum length limit for each search result content.
 
 ## RAG (Retrieval-Augmented Generation) Configuration
 
@@ -245,3 +289,46 @@ MILVUS_EMBEDDING_BASE_URL=
 MILVUS_EMBEDDING_MODEL=
 MILVUS_EMBEDDING_API_KEY=
 ```
+
+---
+
+## Multi-Turn Clarification (Optional)
+
+An optional feature that helps clarify vague research questions through conversation. **Disabled by default.**
+
+### Enable via Command Line
+
+```bash
+# Enable clarification for vague questions
+uv run main.py "Research AI" --enable-clarification
+
+# Set custom maximum clarification rounds
+uv run main.py "Research AI" --enable-clarification --max-clarification-rounds 3
+
+# Interactive mode with clarification
+uv run main.py --interactive --enable-clarification --max-clarification-rounds 3
+```
+
+### Enable via API
+
+```json
+{
+  "messages": [{"role": "user", "content": "Research AI"}],
+  "enable_clarification": true,
+  "max_clarification_rounds": 3
+}
+```
+
+### Enable via UI Settings
+
+1. Open DeerFlow web interface
+2. Navigate to **Settings** → **General** tab
+3. Find **"Enable Clarification"** toggle
+4. Turn it **ON** to enable multi-turn clarification. Clarification is **disabled** by default. You need to manually enable it through any of the above methods. When clarification is enabled, you'll see **"Max Clarification Rounds"** field appear below the toggle
+6. Set the maximum number of clarification rounds (default: 3, minimum: 1)
+7. Click **Save** to apply changes
+
+**When enabled**, the Coordinator will ask up to the specified number of clarifying questions for vague topics before starting research, improving report relevance and depth. The `max_clarification_rounds` parameter controls how many rounds of clarification are allowed.
+
+
+**Note**: The `max_clarification_rounds` parameter only takes effect when `enable_clarification` is set to `true`. If clarification is disabled, this parameter is ignored.

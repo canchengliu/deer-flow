@@ -95,6 +95,7 @@ cp .env.example .env
 
 # Configure conf.yaml for your LLM model and API keys
 # Please refer to 'docs/configuration_guide.md' for more details
+# For local development, you can use Ollama or other local models
 cp conf.yaml.example conf.yaml
 
 # Install marp for ppt generation
@@ -221,6 +222,13 @@ DeerFlow support private knowledgebase such as ragflow and vikingdb, so that you
   - Facilitates integration of diverse research tools and methodologies
 
 ### Human Collaboration
+
+- 💬 **Intelligent Clarification Feature**
+  - Multi-turn dialogue to clarify vague research topics
+  - Improve research precision and report quality
+  - Reduce ineffective searches and token usage
+  - Configurable switch for flexible enable/disable control
+  - See [Configuration Guide - Clarification](./docs/configuration_guide.md#multi-turn-clarification-feature) for details
 
 - 🧠 **Human-in-the-loop**
   - Supports interactive modification of research plans using natural language

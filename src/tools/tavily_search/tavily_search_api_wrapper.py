@@ -12,6 +12,15 @@ from langchain_tavily.tavily_search import (
     TavilySearchAPIWrapper as OriginalTavilySearchAPIWrapper,
 )
 
+from src.config import load_yaml_config
+from src.tools.search_postprocessor import SearchResultPostProcessor
+
+
+def get_search_config():
+    config = load_yaml_config("conf.yaml")
+    search_config = config.get("SEARCH_ENGINE", {})
+    return search_config
+
 
 class EnhancedTavilySearchAPIWrapper(OriginalTavilySearchAPIWrapper):
     def raw_results(
@@ -110,4 +119,13 @@ class EnhancedTavilySearchAPIWrapper(OriginalTavilySearchAPIWrapper):
                 "image_description": image["description"],
             }
             clean_results.append(clean_result)
+
+        search_config = get_search_config()
+        clean_results = SearchResultPostProcessor(
+            min_score_threshold=search_config.get("min_score_threshold"),
+            max_content_length_per_page=search_config.get(
+                "max_content_length_per_page"
+            ),
+        ).process_results(clean_results)
+
         return clean_results
