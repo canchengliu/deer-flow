@@ -6,17 +6,25 @@
 import { useMemo } from "react";
 
 import { useStore } from "~/core/store";
+import { useModelingStore } from "~/core/store/modeling-store";
 import { cn } from "~/lib/utils";
 
 import { MessagesBlock } from "./components/messages-block";
 import { ResearchBlock } from "./components/research-block";
+import { ModelingWorkflowRenderer } from "./modeling/modeling-workflow-renderer";
 
 export default function Main() {
+  const isModelingMode = useModelingStore((state) => state.isModelingMode);
   const openResearchId = useStore((state) => state.openResearchId);
   const doubleColumnMode = useMemo(
     () => openResearchId !== null,
     [openResearchId],
   );
+
+  if (isModelingMode) {
+    return <ModelingWorkflowRenderer />;
+  }
+
   return (
     <div
       className={cn(
